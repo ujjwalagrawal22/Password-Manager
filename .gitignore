@@ -8,6 +8,7 @@ yarn-error.log
 
 # Test scripts with sensitive info
 /test-add.js
+/test-client.js
 
 # Python Virtual Environment
 /venv

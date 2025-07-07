@@ -153,4 +153,106 @@ app.post('/api/passwords', authMiddleware, async (req, res) => {
     }
 });
 
+// --- In src/server.js ---
+
+/**
+ * @route   GET /api/passwords
+ * @desc    Retrieves all encrypted password entries for the user.
+ * @access  Protected
+ */
+app.get('/api/passwords', authMiddleware, async (req, res) => {
+    try {
+        const storedData = await loadData();
+
+        // Filter out only the password entries, leaving metadata behind.
+        const passwordEntries = storedData.filter(entry => entry.type === 'password_entry');
+
+        // We return the encrypted data. The client is responsible for decryption.
+        res.json(passwordEntries);
+
+    } catch (error) {
+        console.error('Error retrieving password entries:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
+// --- In src/server.js ---
+
+/**
+ * @route   DELETE /api/passwords/:id
+ * @desc    Deletes a specific password entry by its ID.
+ * @access  Protected
+ */
+app.delete('/api/passwords/:id', authMiddleware, async (req, res) => {
+    try {
+        const entryIdToDelete = req.params.id;
+        const storedData = await loadData();
+
+        // Find the index of the entry to delete
+        const entryIndex = storedData.findIndex(entry => entry.id === entryIdToDelete && entry.type === 'password_entry');
+
+        // Check if the entry was found
+        if (entryIndex === -1) {
+            return res.status(404).json({ error: 'Password entry not found.' });
+        }
+
+        // Remove the entry from the array
+        const deletedEntry = storedData.splice(entryIndex, 1);
+
+        // Save the updated data back to the file
+        await saveData(storedData);
+
+        // Send a confirmation response
+        // 200 OK is fine, or 204 No Content if you don't want to send a body.
+        res.json({ message: 'Password entry deleted successfully.', id: entryIdToDelete });
+
+    } catch (error) {
+        console.error('Error deleting password entry:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
+// --- In src/server.js ---
+
+/**
+ * @route   PUT /api/passwords/:id
+ * @desc    Updates an existing password entry with new encrypted data.
+ * @access  Protected
+ */
+app.put('/api/passwords/:id', authMiddleware, async (req, res) => {
+    try {
+        const entryIdToUpdate = req.params.id;
+        const { encryptedData, iv } = req.body;
+
+        // Validate the incoming data
+        if (!encryptedData || !iv) {
+            return res.status(400).json({ error: 'New encrypted data and IV are required.' });
+        }
+
+        const storedData = await loadData();
+
+        // Find the specific entry to update
+        const entryToUpdate = storedData.find(entry => entry.id === entryIdToUpdate && entry.type === 'password_entry');
+
+        if (!entryToUpdate) {
+            return res.status(404).json({ error: 'Password entry not found.' });
+        }
+
+        // Update the entry's data and add an 'updatedAt' timestamp
+        entryToUpdate.data = encryptedData;
+        entryToUpdate.iv = iv;
+        entryToUpdate.updatedAt = new Date().toISOString();
+
+        // Save the entire updated data array back to the file
+        await saveData(storedData);
+
+        res.json({ message: 'Password entry updated successfully.', entry: entryToUpdate });
+
+    } catch (error) {
+        console.error('Error updating password entry:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
+
 app.listen(PORT, () => console.log(`Password Manager server listening on http://localhost:${PORT}`));
