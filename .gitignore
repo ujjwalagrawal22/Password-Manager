@@ -1,0 +1,22 @@
+# Node.js
+/node_modules
+npm-debug.log
+yarn-error.log
+
+# User Data (VERY IMPORTANT)
+/src/database/passwords.json
+
+# Test scripts with sensitive info
+/test-add.js
+
+# Python Virtual Environment
+/venv
+
+# OS / IDE specific
+.DS_Store
+.idea/
+.vscode/
+
+# Build outputs
+/dist
+/build
