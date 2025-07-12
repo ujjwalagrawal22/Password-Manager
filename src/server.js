@@ -6,7 +6,9 @@ const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const { deriveKey, encrypt, decrypt } = require('./backend/cryptoService');
 const { loadData, saveData } = require('./database/dataStore');
+require('./database/mongo'); //Ensures mongodb Connection
 const authMiddleware = require('./middleware/authMiddleware');
+const User = require('./database/User');
 
 const app = express();
 const PORT = 3000;
@@ -70,8 +72,9 @@ app.post('/api/setup', async (req, res) => {
             return res.status(400).json({ error: 'Email and master password (min 8 chars) are required.' });
         }
 
-        let storedData = await loadData();
-        if (storedData.some(user => user.email === email)) {
+        //let storedData = await loadData(); // was for json database access
+        //if (storedData.some(user => user.email === email)) 
+        if(await User.findOne({email})) {
             return res.status(409).json({ error: 'User already exists.' });
         }
 
@@ -79,17 +82,18 @@ app.post('/api/setup', async (req, res) => {
         const derivedKey = await deriveKey(masterPassword, masterSalt, KEY_LENGTH, KDF_PARAMS);
         const authTag = encrypt(AUTHENTICATION_CHECK_STRING, derivedKey);
 
-        const newUser = {
+        const newUser = new User({
             email,
             salt: masterSalt,
             kdfParams: KDF_PARAMS,
             authTagData: authTag.encryptedData,
             authTagIv: authTag.iv,
             vault: []
-        };
+        });
 
-        storedData.push(newUser);
-        await saveData(storedData);
+        //storedData.push(newUser);
+        await newUser.save();
+        //await saveData(storedData);
         res.status(201).json({ message: 'User registered successfully.' });
 
     } catch (error) {
@@ -147,8 +151,8 @@ app.post('/api/login', async (req, res) => {
             return res.status(400).json({ error: 'Email and master password are required.' });
         }
 
-        const storedData = await loadData();
-        const user = storedData.find(u => u.email === email);
+        //const storedData = await loadData();
+        const user = await User.findOne({email});//storedData.find(u => u.email === email);
         if (!user) return res.status(404).json({ error: 'User not found.' });
 
         let derivedKey;
@@ -197,24 +201,23 @@ app.post('/api/passwords', authMiddleware, async (req, res) => {
         if (!encryptedData || !iv) {
             return res.status(400).json({ error: 'Encrypted data and IV are required.' });
         }
-
-        const storedData = await loadData();
-        const user = storedData.find(u => u.email === req.user.sub);
+        
+        //Saves to MongoDB
+        const user = await User.findOne({email: req.user.sub});
         if (!user) return res.status(404).json({ error: 'User not found.' });
 
         const newEntry = {
-            id: crypto.randomBytes(16).toString('hex'),
             data: encryptedData,
             iv: iv,
-            createdAt: new Date().toISOString()
+            createdAt: new Date(),
         };
 
-        user.vault = user.vault || [];
         user.vault.push(newEntry);
-        await saveData(storedData);
+        await user.save();
 
         res.status(201).json({ message: 'Password entry added successfully.', entry: newEntry });
     } catch (error) {
+        console.error('Error adding password entry:', error);
         res.status(500).json({ error: 'Internal Server Error' });
     }
 });
@@ -270,12 +273,12 @@ app.post('/api/passwords', authMiddleware, async (req, res) => {
 // GET /api/passwords
 app.get('/api/passwords', authMiddleware, async (req, res) => {
     try {
-        const storedData = await loadData();
-        const user = storedData.find(u => u.email === req.user.sub);
+        const user = await User.findOne({email: req.user.sub});
         if (!user) return res.status(404).json({ error: 'User not found.' });
 
         res.json(user.vault || []);
     } catch (error) {
+        console.error('Error retrieving password entries:', error);
         res.status(500).json({ error: 'Internal Server Error' });
     }
 });
@@ -306,17 +309,17 @@ app.get('/api/passwords', authMiddleware, async (req, res) => {
 app.delete('/api/passwords/:id', authMiddleware, async (req, res) => {
     try {
         const entryIdToDelete = req.params.id;
-        const storedData = await loadData();
-        const user = storedData.find(u => u.email === req.user.sub);
+        //const storedData = await loadData();
+        const user = await User.findOne({email: req.user.sub});//storedData.find(u => u.email === req.user.sub);
         if (!user) return res.status(404).json({ error: 'User not found.' });
 
-        const entryIndex = user.vault.findIndex(entry => entry.id === entryIdToDelete);
+        const entryIndex = user.vault.findIndex(entry => entry._id.toString() === entryIdToDelete);
         if (entryIndex === -1) {
             return res.status(404).json({ error: 'Password entry not found.' });
         }
 
         user.vault.splice(entryIndex, 1);
-        await saveData(storedData);
+        await user.save();//saveData(storedData);
 
         res.json({ message: 'Password entry deleted successfully.', id: entryIdToDelete });
     } catch (error) {
@@ -368,23 +371,23 @@ app.put('/api/passwords/:id', authMiddleware, async (req, res) => {
             return res.status(400).json({ error: 'New encrypted data and IV are required.' });
         }
 
-        const storedData = await loadData();
-        const user = storedData.find(u => u.email === req.user.sub);
+        const user = await User.findOne({email: req.user.sub});
         if (!user) return res.status(404).json({ error: 'User not found.' });
 
-        const entryToUpdate = user.vault.find(entry => entry.id === entryIdToUpdate);
+        const entryToUpdate = user.vault.id(entryIdToUpdate);
         if (!entryToUpdate) {
             return res.status(404).json({ error: 'Password entry not found.' });
         }
 
         entryToUpdate.data = encryptedData;
         entryToUpdate.iv = iv;
-        entryToUpdate.updatedAt = new Date().toISOString();
+        entryToUpdate.updatedAt = new Date();
 
-        await saveData(storedData);
+        await user.save();
 
         res.json({ message: 'Password entry updated successfully.', entry: entryToUpdate });
     } catch (error) {
+        console.error('Error updating password entry:', error);
         res.status(500).json({ error: 'Internal Server Error' });
     }
 });
