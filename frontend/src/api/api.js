@@ -1,6 +1,6 @@
 // frontend/src/api/api.js
 
-const API_BASE = 'http://localhost:3000'; // Change this to your backend URL/port if different
+const API_BASE = 'http://localhost:3001'; // Change this to your backend URL/port if different
 
 export async function loginMasterPassword(email,password) {
   // Adjust the endpoint and payload to match your backend API
@@ -19,7 +19,7 @@ export async function loginMasterPassword(email,password) {
 }
 
 export async function fetchVaultPasswords(token) {
-    const response = await fetch('http://localhost:3000/api/passwords', {
+    const response = await fetch(`${API_BASE}/api/passwords`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -35,7 +35,7 @@ export async function fetchVaultPasswords(token) {
   }
 
   export async function addVaultPassword(token, encryptedData, iv) {
-    const response = await fetch('http://localhost:3000/api/passwords', {
+    const response = await fetch(`${API_BASE}/api/passwords`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -53,7 +53,7 @@ export async function fetchVaultPasswords(token) {
   }
 
   export async function deleteVaultPassword(token, id) {
-    const response = await fetch(`http://localhost:3000/api/passwords/${id}`, {
+    const response = await fetch(`${API_BASE}/api/passwords/${id}`, {
       method: 'DELETE',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -67,7 +67,7 @@ export async function fetchVaultPasswords(token) {
   }
 
   export async function updateVaultPassword(token, id, encryptedData, iv) {
-    const response = await fetch(`http://localhost:3000/api/passwords/${id}`, {
+    const response = await fetch(`${API_BASE}/api/passwords/${id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',

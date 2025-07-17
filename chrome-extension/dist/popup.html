@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Password Manager</title>
+    <style>
+        body { font-family: sans-serif; width: 250px; padding: 10px; }
+        input { width: 95%; padding: 5px; margin-bottom: 10px; }
+        button { width: 100%; padding: 8px; }
+        .error { color: red; margin-bottom: 10px; }
+    </style>
+  <script type="module" crossorigin src="/popup.js"></script>
+</head>
+<body>
+    <h3>Login to Your Vault</h3>
+    <div id="login-form">
+        <input type="email" id="email" placeholder="Email">
+        <input type="password" id="masterPassword" placeholder="Master Password">
+        <button id="login-btn">Login</button>
+        <div id="error-message" class="error"></div>
+    </div>
+    <div id="logged-in-view" style="display:none;">
+        <p>You are logged in.</p>
+        <button id="logout-btn">Logout</button>
+    </div>
+</body>
+</html>
