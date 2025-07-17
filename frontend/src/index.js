@@ -7,7 +7,7 @@ import { ThemeProvider as MUIThemeProvider, CssBaseline } from '@mui/material';
 import { ThemeProvider } from './context/ThemeContext';
 import { AuthProvider } from './context/AuthContext';
 import { MasterPasswordProvider } from './context/MasterPasswordContext';
-import createAppTheme from '/Users/ujjwalagrawal/Documents/Password manager/frontend/src/ theme.js';
+import createAppTheme from './ theme.js';
 import { useTheme } from './context/ThemeContext';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));

@@ -27,7 +27,7 @@ const KDF_PARAMS = {
 };
 
 app.use(express.json());
-app.use(cors({ origin: 'http://localhost:3001' }));
+app.use(cors({ origin: 'http://localhost:3000' }));
 
 // --- Public Routes (No Auth Needed) ---
 

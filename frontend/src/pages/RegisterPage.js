@@ -29,7 +29,7 @@ const RegisterPage = () => {
     }
 
     try {
-      const response = await fetch('http://localhost:3000/api/setup', {
+      const response = await fetch('http://localhost:3001/api/setup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, masterPassword: password }),
