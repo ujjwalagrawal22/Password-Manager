@@ -2,6 +2,7 @@
 
 const API_BASE = 'http://localhost:3001'; // Change this to your backend URL/port if different
 
+
 export async function loginMasterPassword(email,password) {
   // Adjust the endpoint and payload to match your backend API
   const response = await fetch(`${API_BASE}/api/login`, {
