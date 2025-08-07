@@ -1,0 +1,54 @@
+# .github/workflows/deploy.yml
+
+name: Build and Deploy to GCP
+
+# This workflow triggers automatically on every push to the "main" branch
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    # The job will run on a fresh virtual machine provided by GitHub
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checks out your repository code so the job can access it
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # Step 2: This is the magic step that connects to your VM and runs the deploy script
+      - name: Deploy to VM via SSH
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.GCP_SSH_HOST }}
+          username: ${{ secrets.GCP_SSH_USER }}
+          key: ${{ secrets.GCP_SSH_PRIVATE_KEY }}
+          script: |
+            # === THIS SCRIPT RUNS ON YOUR GCP VM ===
+
+            # Go to your project folder on the VM
+            # !!! IMPORTANT: Change this to your actual project path !!!
+            cd /home/ujjwalagrawal/Password-Manager
+
+            # Get the new code from the main branch
+            echo "Pulling latest code from GitHub..."
+            git pull origin main
+
+            # Install/update backend dependencies
+            echo "Updating backend dependencies..."
+            cd server
+            npm install --only=production
+
+            # Install/update and rebuild frontend
+            echo "Updating and rebuilding frontend..."
+            cd ../frontend
+            npm install
+            npm run build
+
+            # Restart the application server using the correct PM2 name
+            echo "Restarting application with PM2..."
+            pm2 restart server
+
+            echo "✅ Deployment successful!"
