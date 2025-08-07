@@ -7,6 +7,7 @@ import VaultPage from './pages/VaultPage';
 import AddPasswordPage from './pages/AddPasswordPage';
 import RegisterPage from './pages/RegisterPage';
 import { useAuth } from './context/AuthContext';
+import LandingPage from './pages/LandingPage';
 
 function App() {
   const { isLoggedIn, isLoading } = useAuth();
@@ -31,7 +32,8 @@ function App() {
         )}
         <Box sx={{ flexGrow: 1 }}>
           <Routes>
-            <Route path="/" element={<LoginPage />} />
+          <Route path="/" element={<LandingPage />} />
+            <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/vault" element={<VaultPage />} />
             <Route path="/add" element={<AddPasswordPage />} />
