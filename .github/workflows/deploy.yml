@@ -34,6 +34,7 @@ jobs:
 
             # Get the new code from the main branch
             echo "Pulling latest code from GitHub..."
+            git reset --hard
             git pull origin main
 
             # Install/update backend dependencies
