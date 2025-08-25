@@ -32,7 +32,13 @@ const KDF_PARAMS = {
 
 //env create -CORS_ORIgIN
 app.use(express.json());
-app.use(cors({ origin: process.env.CORS_ORIGIN }));
+// app.use(cors({ origin: process.env.CORS_ORIGIN }));
+app.use(cors({
+    origin: 'http://34.29.53.106',  // frontend URL (without port 3001)
+    methods: ['GET','POST','PUT','DELETE'],
+    credentials: true
+  }));
+  
 
 // --- Public Routes (No Auth Needed) ---
 
