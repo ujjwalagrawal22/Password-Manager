@@ -4,7 +4,7 @@
 import { deriveKeyScrypt, encryptAES256CBC, decryptAES256CBC } from './crypto.js';
 
 // --- Configuration ---
-const BASE_API_URL = 'http://localhost:3001/api';
+const BASE_API_URL = 'http://34.29.53.106/api';
 
 // --- In-memory State ---
 // The derivedKey is stored here temporarily and is cleared when the browser closes.
